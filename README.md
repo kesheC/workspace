@@ -16,6 +16,20 @@
 ```
 
 新项目建议放在 `projects/<name>/`，需要独立版本历史时再单独 `git init` 拆库。
+`projects/*/` 已加入 `.gitignore`：子项目各自是独立仓库，不进本仓库。
+
+## 已出品的项目
+
+五个零运行时依赖的 Node CLI，各自独立建库、四路矩阵 CI（ubuntu/windows × node 20/22）全绿、
+v0.1.0 Release 已发。
+
+| 项目 | 说明 | 仓库 |
+| --- | --- | --- |
+| clidoc | 把真实命令输出写回 README，让文档不会和 CLI 漂移 | [kesheC/clidoc](https://github.com/kesheC/clidoc) |
+| envpulse | `.env` 漂移与密钥泄漏体检 | [kesheC/envpulse](https://github.com/kesheC/envpulse) |
+| gitignore-doctor | 解释并审计 `.gitignore` 规则：冗余、缺失、已失效 | [kesheC/gitignore-doctor](https://github.com/kesheC/gitignore-doctor) |
+| jsonl-beaver | 流式 JSONL / NDJSON 日志分析，GB 级不爆内存 | [kesheC/jsonl-beaver](https://github.com/kesheC/jsonl-beaver) |
+| apidiff | 在发布前发现 OpenAPI / JSON Schema / .env 的破坏性变更 | [kesheC/apidiff](https://github.com/kesheC/apidiff) |
 
 ## 本机能力边界
 
