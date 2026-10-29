@@ -6,6 +6,9 @@
 *.db-shm
 *.db-wal
 
+# ---- 子项目（各自是独立 git 仓库）----
+projects/*/
+
 # ---- 系统垃圾 ----
 Thumbs.db
 Desktop.ini
