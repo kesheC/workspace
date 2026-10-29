@@ -1,0 +1,50 @@
+# ---- DSH / agent 本地状态（不进库）----
+.dsh-meow/
+.dsh-mattskillsdeck-cache/
+.dsh-pocket/
+.dsh/
+*.db-shm
+*.db-wal
+
+# ---- 系统垃圾 ----
+Thumbs.db
+Desktop.ini
+.DS_Store
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ---- 编辑器 ----
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ---- Node ----
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-error.log*
+.npm/
+
+# ---- 构建产物 / 临时 ----
+*.log
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+*~
