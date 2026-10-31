@@ -37,4 +37,6 @@ Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`,
 
 ### Domain docs
 
-Single-context: one root `GLOSSARY.md` and `docs/adr/`, shared by all `projects/*`. See `docs/agents/domain.md`.
+Single-context: if a root `GLOSSARY.md` and `docs/adr/` exist, they are shared by all
+`projects/*` rather than duplicated per project. Neither file exists yet; `docs/agents/domain.md`
+says to proceed silently in that case, so do not create them just to fill the layout.
