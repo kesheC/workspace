@@ -21,7 +21,7 @@
 
 ## 已出品的项目
 
-六个零运行时依赖的 Node CLI，各自独立建库、四路矩阵 CI（ubuntu / windows × node 20 / 22）全绿，
+六个零运行时依赖的 Node CLI，各自独立建库、六路矩阵 CI（ubuntu / windows × node 20 / 22 / 24）全绿，
 每次打 tag 由 release workflow 构建 tarball、在干净目录里安装并运行它，再上传到 Release。
 
 | 项目 | 说明 | 仓库 |
