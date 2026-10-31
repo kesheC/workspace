@@ -36,10 +36,10 @@
 ### 安装方式说明
 
 这六个包**都没有发布到 npm registry**（`clidoc` 与 `repropack` 这两个名字在 npm 上属于别人的无关包）。
-每个 Release 都附带一个可以直接安装的 tarball：
+每个 Release 都附带一个可以直接安装的 tarball，资产名固定、不带版本号，所以这条命令在哪个版本都能用：
 
 ```console
-$ npm install -g https://github.com/kesheC/<name>/releases/download/v0.1.1/<name>-0.1.1.tgz
+$ npm install -g https://github.com/kesheC/<name>/releases/latest/download/<name>.tgz
 ```
 
 > `npm install -g git+https://github.com/...` 装不起来：checkout 里没有构建产物，而全局安装
