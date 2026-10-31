@@ -35,7 +35,7 @@
 
 ### 安装方式说明
 
-这六个包**都没有发布到 npm registry**（`clidoc` 与 `repropack` 这两个名字在 npm 上属于别人的无关包）。
+这六个包**都没有发布到 npm registry**（`clidoc` 与 `repropack` 这两个名字已被别人的项目占用，其余四个名字仍然空着）。
 每个 Release 都附带一个可以直接安装的 tarball，资产名固定、不带版本号，所以这条命令在哪个版本都能用：
 
 ```console
