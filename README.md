@@ -42,8 +42,8 @@
 $ npm install -g https://github.com/kesheC/<name>/releases/download/v0.1.1/<name>-0.1.1.tgz
 ```
 
-> `npm install -g git+https://github.com/...` 在 npm 11 上装不起来：全局安装会跳过
-> `devDependencies`，`prepare` 里的 `tsc` 就不存在了。这也是本仓库统一改用 tarball 的原因。
+> `npm install -g git+https://github.com/...` 装不起来：checkout 里没有构建产物，而全局安装
+> 会跳过 `devDependencies`，没有 `tsc` 可以编译。这也是本仓库统一改用 tarball 的原因。
 
 ## 本机能力边界
 
