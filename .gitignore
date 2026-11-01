@@ -1,4 +1,5 @@
 # ---- DSH / agent 本地状态（不进库）----
+.local/
 .dsh-meow/
 .dsh-mattskillsdeck-cache/
 .dsh-pocket/

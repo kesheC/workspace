@@ -55,6 +55,7 @@ $ npm install -g https://github.com/kesheC/<name>/releases/latest/download/<name
 | --- | --- | --- |
 | [v0.1.7](https://github.com/kesheC/repropack/releases/tag/v0.1.7) | 2026-11-01 | 六个包统一发版：修正 README 里与实际不符的输出、补齐发布链路的闸门、发布构建停发 sourcemap、`files` 收紧为 `dist` + `README` + `LICENSE` |
 | [v0.1.8](https://github.com/kesheC/repropack/releases/tag/v0.1.8) | 2026-11-01 | 发布与 CI 闸门改成「把闸门自己的 shell body 抽出来真跑」而不是断言 YAML 里有某个字符串；补回重写时丢掉的三条守卫（先 `--draft=false` 发布再上传、每个 bin 都冒烟测、build 先清 `dist`）；envpulse 补上它一直没有的 tag/version 闸门；repropack 的 `--version` 断言改为比对 `TOOL_VERSION`，版本号不再变成测试失败 |
+| [v0.1.9](https://github.com/kesheC/repropack/releases/tag/v0.1.9) | 2026-11-01 | 六仓 README 补中文：十二节（clidoc/envpulse/jsonl-beaver 为段内镜像）全部有中文对照；clidoc / envpulse / jsonl-beaver 修掉「命令不读的选项被静默忽略」，越界 flag 现在 exit 2 并指出真正读它的命令；apidiff 的 FAQ 不再声称 `diffSchemas` 会拒绝数组根（它返回一条 `schema.replaced`，只有 CLI 的 `assertSchemaRoot` 会拒）；0.1.8 里对 v0.1.7 守卫的口径逐仓校正 |
 
 每个 tag 由各自的 release workflow 构建 tarball、在干净目录里装一遍、核对 `--version`、再连同
 `.sha256` 一起上传；资产同时发布固定名（`<name>.tgz`，可长期引用）与版本名（`<name>-<ver>.tgz`）两套。
