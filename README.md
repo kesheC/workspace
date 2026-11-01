@@ -45,6 +45,19 @@ $ npm install -g https://github.com/kesheC/<name>/releases/latest/download/<name
 > `npm install -g git+https://github.com/...` 装不起来：checkout 里没有构建产物，而全局安装
 > 会跳过 `devDependencies`，没有 `tsc` 可以编译。这也是本仓库统一改用 tarball 的原因。
 
+每个 tarball 里只有 `dist/`、`README.md` 和 `LICENSE`：没有 `src/`、没有测试、没有 `.js.map`。
+不发源码的包里带 sourcemap 只是指向一个读者永远打不开的文件，所以六个包的发布构建都关掉了它，
+并由各自的 `tests/package.test.ts` 与 CI 的打包检查同时守着。
+
+### 发版记录
+
+| 版本 | 日期 | 内容 |
+| --- | --- | --- |
+| [v0.1.7](https://github.com/kesheC/repropack/releases/tag/v0.1.7) | 2026-11-01 | 六个包统一发版：修正 README 里与实际不符的输出、补齐发布链路的闸门、发布构建停发 sourcemap、`files` 收紧为 `dist` + `README` + `LICENSE` |
+
+每个 tag 由各自的 release workflow 构建 tarball、在干净目录里装一遍、核对 `--version`、再连同
+`.sha256` 一起上传；资产同时发布固定名（`<name>.tgz`，可长期引用）与版本名（`<name>-<ver>.tgz`）两套。
+
 ## 本机能力边界
 
 - 已配好：`git` 全局身份、`gh` 登录（scopes 含 `repo` / `workflow` / `gist` / `read:org`）
