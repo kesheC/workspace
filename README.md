@@ -83,3 +83,7 @@ $ npm install -g https://github.com/kesheC/<name>/releases/latest/download/<name
 
 - [`AGENTS.md`](AGENTS.md)：目录约定、环境、agent 技能与 issue tracker 规则
 - [`docs/agents/`](docs/agents/)：issue tracker / triage labels / domain 三份配置，外加每个项目的 spec
+- [`docs/agents/project-playbook.md`](docs/agents/project-playbook.md)：六个项目共用的生产手册（骨架、CI、发布链路、README 规范、质量闸门、交付报告）
+- [`CONTRIBUTING.md`](CONTRIBUTING.md)：一处改动该提到哪个仓库；`projects/*/` 在这里是被忽略的独立 checkout
+- [`SECURITY.md`](SECURITY.md) / [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)：报告渠道（私密 advisory，不是公开 issue）
+- [`scripts/github-posture.sh`](scripts/github-posture.sh)：一行一仓打印 version / topics / 社区档案 / secret scanning / push protection / 私密报告 / 最新 CI / 最新 release，有一列不达标就退出 1
