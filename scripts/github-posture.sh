@@ -13,8 +13,8 @@ if [ ${#repos[@]} -eq 0 ]; then
   repos=(repropack clidoc envpulse gitignore-doctor jsonl-beaver apidiff workspace)
 fi
 
-printf '%-17s %-7s %-7s %-6s %-6s %-6s %-5s %-6s %-10s\n' \
-  repo version topics health scan push-prot pvr ci release
+printf '%-17s %-7s %-7s %-6s %-6s %-6s %-5s %-7s %-6s %-10s\n' \
+  repo version topics health scan push-prot pvr branch ci release
 status=0
 
 for r in "${repos[@]}"; do
@@ -27,6 +27,10 @@ for r in "${repos[@]}"; do
   scan=$(gh api "repos/$owner/$r" --jq '.security_and_analysis.secret_scanning.status' 2>/dev/null || echo '-')
   pushp=$(gh api "repos/$owner/$r" --jq '.security_and_analysis.secret_scanning_push_protection.status' 2>/dev/null || echo '-')
   pvr=$(gh api "repos/$owner/$r/private-vulnerability-reporting" --jq '.enabled' 2>/dev/null || echo '-')
+  # Branch protection is the one setting that decides whether the sha the CI
+  # run names can later be replaced by a force push, so it is checked by name.
+  branch=$(gh api "repos/$owner/$r/branches/main/protection" --jq \
+    'if (.allow_force_pushes.enabled or .allow_deletions.enabled) then "weak" else "protected" end' 2>/dev/null || echo '-')
   ci=$(gh run list --repo "$owner/$r" --workflow CI --limit 1 --json conclusion --jq '.[0].conclusion // "-"' 2>/dev/null || echo '-')
   rel=$(gh api "repos/$owner/$r/releases/latest" \
     --jq '.tag_name + " (" + ((.assets|length)|tostring) + " assets)"' 2>/dev/null | head -1)
@@ -34,13 +38,14 @@ for r in "${repos[@]}"; do
   # if it still looks like a release tag.
   case "$rel" in v*) ;; *) rel='-' ;; esac
 
-  printf '%-17s %-7s %-7s %-6s %-6s %-6s %-5s %-6s %-10s\n' \
-    "$r" "$ver" "$topics" "$health" "$scan" "$pushp" "$pvr" "$ci" "$rel"
+  printf '%-17s %-7s %-7s %-6s %-6s %-6s %-5s %-7s %-6s %-10s\n' \
+    "$r" "$ver" "$topics" "$health" "$scan" "$pushp" "$pvr" "$branch" "$ci" "$rel"
 
   [ "$health" = "100" ] || { echo "  ^ $r: community profile is not complete ($health%)" >&2; status=1; }
   [ "$scan" = "enabled" ] || { echo "  ^ $r: secret scanning is off" >&2; status=1; }
   [ "$pushp" = "enabled" ] || { echo "  ^ $r: push protection is off" >&2; status=1; }
   [ "$pvr" = "true" ] || { echo "  ^ $r: private vulnerability reporting is off" >&2; status=1; }
+  [ "$branch" = "protected" ] || { echo "  ^ $r: main accepts force pushes or deletion" >&2; status=1; }
 done
 
 exit $status

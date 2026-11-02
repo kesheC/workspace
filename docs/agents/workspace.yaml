@@ -7,5 +7,3 @@ backendId: github
 pickedAt: 1793277900000
 # 这条选择是谁做的：user=人在面板里亲手选的；migrated=从老版本机记忆搬来的；detected=插件按声明文件或自动识别生成的
 source: user
-
-<!-- protected-branch push probe -->
