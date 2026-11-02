@@ -149,7 +149,7 @@ target-version = "py310"
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md
 ├── SECURITY.md
-├── .gitattributes     # 至少把 package-lock.json 标成 text eol=lf -diff
+├── .gitattributes     # package-lock.json 标 text eol=lf（别再写 -diff）
 ├── .gitignore
 ├── package.json / pyproject.toml
 ├── tsconfig.json      # 编辑器 + typecheck，含 src 与 tests
@@ -160,7 +160,9 @@ target-version = "py310"
 
 **库 API 与 CLI 必须解耦**：`index.ts` 不读 `process.argv`、不调 `process.exit`，这样别人能 import 复用。
 
-`.gitattributes` 里 `package-lock.json text eol=lf -diff` 那句不是可选装饰：锁文件是纯文本，但不这么标的话 git 会把它当二进制，`git diff` 只回一句 `Binary files differ`，lockfile 的版本漂移就永远看不见了。
+`.gitattributes` 里要给锁文件写的是 `package-lock.json text eol=lf`，**不是** `text eol=lf -diff`：`-diff` 不是「也顺便当文本看」，它是 `diff` 属性取值为 unset，意思是「这个文件不要给 diff」。带上它，`git diff` 只回一句 `Binary files differ`，锁文件的版本漂移就永远看不见了 —— 正好是这句话本来想避免的后果。
+
+最小复现（三行就够）：提交一份 `package-lock.json`，改一个字符，再分别在没有属性 / `-diff` / 只有 `text eol=lf` 三种情况下看 `git diff --stat`：前两种是 `1 insertion(+), 1 deletion(-)` 与 `Bin 13 -> 13 bytes`，第三种才是 `1 insertion(+), 1 deletion(-)`；加了 `-diff` 的那份要 `git diff --text` 才能把正文逼出来 —— 注意 `git diff --text --stat` 仍然打印 `Bin`，`--stat` 不认这个开关，得拆成两条命令。`git check-attr -a -- package-lock.json` 会老实告诉你 `diff: unset`。**`-diff` 的用途是「明确不想要 diff」**（二进制产物、快照文件），不是「让 diff 好看」。
 
 社区文件的四个入口各司其职，缺一个 GitHub 的 community profile 就不是 100%：`CONTRIBUTING.md` 写给要动代码的人，`CODE_OF_CONDUCT.md` 写给要吵架的人，`SECURITY.md` 写给要报漏洞的人（**不能走公开 issue**），issue/PR 模板写给要报问题的人。安全联系入口必须同时出现在 `SECURITY.md` 与 `.github/ISSUE_TEMPLATE/config.yml` 的 `contact_links` 里，否则 issue 选择页没有一条通往「不能公开说」的路。
 
