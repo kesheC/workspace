@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: A bug in one of the six tools
+    url: https://github.com/kesheC/repropack/issues
+    about: repropack, clidoc, envpulse, gitignore-doctor, jsonl-beaver and apidiff each have their own tracker.
+  - name: Report a security vulnerability
+    url: https://github.com/kesheC/workspace/security/advisories/new
+    about: Security problems go through the private advisory channel, never a public issue.

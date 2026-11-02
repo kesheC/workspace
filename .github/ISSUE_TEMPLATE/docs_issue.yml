@@ -1,0 +1,62 @@
+name: Docs or process issue
+description: The playbook, a spec, this README, or one of the scripts that reads the GitHub API.
+labels: ["needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This repository only covers the index, the playbook, the specs and the scripts.
+        If the problem is inside a shipped tool, please open it in that tool's repository
+        instead — see the links on the new-issue page.
+
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where is the problem
+      options:
+        - docs/agents/project-playbook.md
+        - docs/agents/specs/
+        - README.md
+        - scripts/
+        - SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md
+        - not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What the docs say
+      description: The sentence, command or claim as it is written today.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happens
+      description: The command you ran and its complete output. If you followed an instruction, paste the whole step.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: What someone would get wrong by believing it
+      description: A doc that is merely stale is low priority. One that teaches a broken command or a gate that does not gate is not.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I removed secrets and personal data from the pasted output.
+          required: true
+        - label: This is not a security vulnerability (those go through SECURITY.md, never a public issue).
+          required: true
