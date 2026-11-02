@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.png binary
+*.tgz binary
+
+# Every file here is text. core.autocrlf is on for this Windows checkout, so
+# without this line a fresh clone rewrites the shell scripts to CRLF and
+# scripts/github-posture.sh dies on the shebang anywhere but Git Bash.
