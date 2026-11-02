@@ -39,6 +39,8 @@
     "build": "npm run clean && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "precoverage": "npm run build",
+    "coverage": "vitest run --coverage",
     "dev": "npm run build && node dist/cli.js",
     "prepack": "npm run build"
   },
@@ -46,8 +48,9 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "@vitest/coverage-v8": "^4.1.12",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.12"
   }
 }
 ```
@@ -72,7 +75,8 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
   },
   "include": ["src", "tests"]
 }
@@ -93,6 +97,8 @@
   "include": ["src"]
 }
 ```
+
+`types: ["node"]` 不能省：TypeScript 7 起不再自动导入 `@types/node`，删掉这一行之后 `process`、`Buffer`、`node:fs` 全部变成找不到的名字，`npm run build` 会在第一个 `node:` 导入上就红。
 
 两层分开的理由：`include: ["src"]` 的单一 tsconfig 会让 `npm run typecheck` 永远不打开测试文件，于是测试里的类型错误一路绿到 CI；反过来把 `rootDir` 留在 tsconfig.json 又会让 tests 触发 TS6059。所以 `noEmit` 那层收 src+tests、发版那层收 src 并自带 `rootDir`。`sourceMap` 在发版层关掉：`files` 只发 `dist/`，`.js.map` 指向的 `../src/*.ts` 不在包里，等于让下载体积翻倍换一堆死链接。
 
@@ -192,16 +198,25 @@ jobs:
         node: [20, 22, 24]
 
     steps:
-      - uses: actions/checkout@v5
+      # Action versions are pinned to a commit and the readable tag kept beside
+      # it: a mutable tag is a dependency that can change under a green build.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node ${{ matrix.node }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
           cache: npm
 
       - name: Install
         run: npm ci
+
+      # The package ships zero runtime dependencies, so the dev dependencies
+      # are the whole supply chain. A high or critical advisory in the
+      # toolchain is worth stopping for; moderate and low ones get read on
+      # the next dependency bump instead of blocking an unrelated fix.
+      - name: Audit dev dependencies
+        run: npm audit --audit-level=high
 
       # build only joins src; this also typechecks the test files.
       - name: Typecheck
@@ -247,7 +262,7 @@ jobs:
           [ "$actual" = "$expected" ] || { echo "version mismatch" >&2; exit 1; }
 ```
 
-三处口径写死的原因：矩阵必须覆盖 `engines.node` 承诺的每一个主版本，`20` 是下限、`24` 是当前 active LTS，中间不能断；`actions/checkout@v5` / `actions/setup-node@v5` 是 Node 24 能跑起来的最低大版本；`Typecheck` 必须独立成步，因为 `npm run build` 只编 src，测试文件的类型错误只有 `tsc --noEmit` 会看。
+五处口径写死的原因：矩阵必须覆盖 `engines.node` 承诺的每一个主版本，`20` 是下限、`24` 是当前 active LTS，中间不能断；`uses:` 一律钉 40 位 commit sha 并留 `# vX.Y.Z` 注释，可变 tag 等于一条能在绿色构建下自己变动的依赖（实测 `actions/checkout@v5` = `fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09`，`setup-node@v5` = `a0853c24544627f65ddf259abe73b1d18a591444`）；`Audit dev dependencies` 必须独立成步，因为包本身零运行时依赖，整条供应链就是 devDependencies，`npm audit --audit-level=high` 是唯一读它的地方；`Typecheck` 必须独立成步，因为 `npm run build` 只编 src，测试文件的类型错误只有 `tsc --noEmit` 会看；`Coverage` 必须带 `if:`，否则阈值会变成一份没人执行的策略。
 
 Coverage 只跑一格（`runner.os == 'Linux' && matrix.node == 24`）：它是唯一要再跑一遍全量 suite 的闸门，六格都跑只是把 CI 成本翻倍，不产生新信息；固定同一条腿，前后两次的数字才可比。阈值写在 `vitest.config.ts` 的 `coverage.thresholds`，**故意略低于当前实测**——它不是「努力目标」，是「跌破就红」的回归闸门；真跌破了，正确反应是补测试，或者在这个 PR 里带理由下调阈值，而不是删断言。阈值只被 `vitest run --coverage` 读取，所以「CI 里有一步真的跑它」必须由测试同时钉住（`tests/workflow.test.ts` 断言 `run: npm run coverage` 存在、在 `npm ci` 之后、且那一步带 `if:`），否则四个数字会变成一份没人执行的策略。
 
@@ -293,6 +308,18 @@ Tag-driven：`on: push: tags: v*`，`permissions: contents: write`，固定 node
 6. **Publish 之后回读资产名**，逐个断言稳定名与它的校验文件都在。上传命令成功不代表资产在那——`--clobber` 与 tag 复用会让漏传和覆盖看起来一样。
 
 Smoke test 步骤要**把稳定名装进另一个空目录**：同一个 name+version 已经满足时 npm 不会去读新文件，装在版本名旁边等于什么都没测。
+
+### 依赖升级（`.github/dependabot.yml`）
+
+dependabot 的价值不是「保持最新」，是**免费拿到一份兼容性实验报告**：它每开一个 PR，CI 就替你在 6 格矩阵上把那个大版本跑一遍。所以对待它的 PR 只看 CI 结论，不看版本号大小——actions 那类六格全绿就直接吸收，npm 那类红了就去看是哪一格、为什么。
+
+`ignore` 有三条真实的坑：
+
+1. **`ignore` 只过滤版本更新，不过滤安全更新**。写进去不等于把风险关掉，只是不再为常规升级打扰你；advisory 该来还会来。
+2. **成对发版的包必须成对 ignore**。`@vitest/coverage-v8` 的 `peerDependencies` 是**精确版本** `vitest: "4.1.12"`，两个包只能同版本共存：名单只拦 `vitest` 不拦它，第二天 bot 就会单独把 coverage-v8 提到 5.0.5，npm 在 pin 死的 peer 上直接 `ERESOLVE`，六格 CI 全红——而这个组合**装都装不上**，本地怎么修都救不回来。判据是机器可读的：`package-lock.json` 里某依赖的 `peerDependencies` 若精确匹配 `^\d+\.\d+\.\d+$` 且目标也是本仓声明过的依赖，两者必须同进同出。
+3. **每条 ignore 都要写清解除条件**。`ignore` 是一句「暂时不升」，不写清在等什么，它就会活得比理由长——半年后没人知道能不能删。写成「vitest 5 的 `engines` 地板降到本包承诺的 20.11、或本包地板抬到 `^22.12`，两条同时满足才解除」这种可以核对的句子。
+
+这三条不要靠记性，写成测试：读 `package.json` + `package-lock.json` + `dependabot.yml` 三方交叉，断言「精确 pin 的 peer 对要么都 ignore 要么都不 ignore」和「每个被 ignore 的名字仍在本仓 devDependencies 里」。反向验证两遍——删掉一条要红并指名道姓，加一条不存在的包也要红（`dependabot ignores <name> but nothing declares it`）。
 
 ---
 
@@ -381,6 +408,7 @@ CI 跑绿（conclusion: success）才算交付；红了就修，修完再推。*
 - [ ] `npm run build` 通过，无 TS 报错
 - [ ] `npm test` 全绿，测试数 ≥ 15 个用例，且覆盖：正常路径、边界、错误路径
 - [ ] `npm run coverage` 通过，阈值在 `vitest.config.ts` 里、且 CI 里真有一格在跑它（没跑过的阈值等于没写）
+- [ ] `dependabot.yml` 里每条 `ignore` 都写了可核对的解除条件，成对发版的包成对写（精确 pin 的 peer 关系读 `package-lock.json` 就能判）
 - [ ] `npm run dev` 能启动并打印 `--version`（写不出可用 dev 脚本就删掉它，别留一个退出 1 的死脚本）
 - [ ] 在**干净导出**里也能过：`git archive` 到临时目录 → `npm ci` → `build` → `test`（仓库里躺着的未跟踪文件会掩盖缺陷）
 
