@@ -213,6 +213,13 @@ jobs:
       - name: Test
         run: npm test
 
+      # Coverage is the one gate that costs a second full run of the suite, so
+      # it runs on a single leg: one column, the same one every time, which
+      # keeps the numbers comparable between runs.
+      - name: Coverage
+        if: runner.os == 'Linux' && matrix.node == 24
+        run: npm run coverage
+
       # The tarball is what users install, so the tarball is what CI runs.
       - name: Smoke test the packed tarball
         shell: bash
@@ -241,6 +248,10 @@ jobs:
 ```
 
 三处口径写死的原因：矩阵必须覆盖 `engines.node` 承诺的每一个主版本，`20` 是下限、`24` 是当前 active LTS，中间不能断；`actions/checkout@v5` / `actions/setup-node@v5` 是 Node 24 能跑起来的最低大版本；`Typecheck` 必须独立成步，因为 `npm run build` 只编 src，测试文件的类型错误只有 `tsc --noEmit` 会看。
+
+Coverage 只跑一格（`runner.os == 'Linux' && matrix.node == 24`）：它是唯一要再跑一遍全量 suite 的闸门，六格都跑只是把 CI 成本翻倍，不产生新信息；固定同一条腿，前后两次的数字才可比。阈值写在 `vitest.config.ts` 的 `coverage.thresholds`，**故意略低于当前实测**——它不是「努力目标」，是「跌破就红」的回归闸门；真跌破了，正确反应是补测试，或者在这个 PR 里带理由下调阈值，而不是删断言。阈值只被 `vitest run --coverage` 读取，所以「CI 里有一步真的跑它」必须由测试同时钉住（`tests/workflow.test.ts` 断言 `run: npm run coverage` 存在、在 `npm ci` 之后、且那一步带 `if:`），否则四个数字会变成一份没人执行的策略。
+
+`coverage.exclude` 必须把 `dist/**` 排除掉：测试 import 的是构建产物，不排除时同一个模块会被算两遍（一次走 source map 回源、一次算 `dist` 里那份），repropack 实测 46.75% vs 真值 89.66%，正好腰斩。另外 `coverage` 之前要有 `precoverage: npm run build`，否则本地量的是一份过期的 `dist`。
 
 `npm pack --dry-run` 那段要在 `cd` 去临时目录**之前**跑：`npm pack` 打的是当前目录的包，cd 之后再打会去检查那个空的包，永远通过。装到临时目录再跑 `--version`，是为了让 `node` 把 `<name>` 解析到 `node_modules/<name>`（真正发布的产物）而不是检出目录里的源码。
 
@@ -369,6 +380,7 @@ CI 跑绿（conclusion: success）才算交付；红了就修，修完再推。*
 - [ ] `npm run typecheck` 通过（这一层必须含 tests，见第 1 节）
 - [ ] `npm run build` 通过，无 TS 报错
 - [ ] `npm test` 全绿，测试数 ≥ 15 个用例，且覆盖：正常路径、边界、错误路径
+- [ ] `npm run coverage` 通过，阈值在 `vitest.config.ts` 里、且 CI 里真有一格在跑它（没跑过的阈值等于没写）
 - [ ] `npm run dev` 能启动并打印 `--version`（写不出可用 dev 脚本就删掉它，别留一个退出 1 的死脚本）
 - [ ] 在**干净导出**里也能过：`git archive` 到临时目录 → `npm ci` → `build` → `test`（仓库里躺着的未跟踪文件会掩盖缺陷）
 
