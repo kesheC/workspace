@@ -21,7 +21,7 @@
 
 ## 已出品的项目
 
-六个零运行时依赖的 Node CLI，各自独立建库、六路矩阵 CI（ubuntu / windows × node 20 / 22 / 24）全绿，
+九个零运行时依赖的 Node CLI，各自独立建库、六路矩阵 CI（ubuntu / windows × node 20 / 22 / 24）全绿，
 每次打 tag 由 release workflow 构建 tarball、在干净目录里安装并运行它，再上传到 Release。
 
 | 项目 | 说明 | 仓库 |
@@ -32,10 +32,13 @@
 | gitignore-doctor | 解释并审计 `.gitignore` 规则：哪一行让这个路径被忽略 | [kesheC/gitignore-doctor](https://github.com/kesheC/gitignore-doctor) |
 | jsonl-beaver | 流式 JSONL / NDJSON 日志分析，GB 级不爆内存 | [kesheC/jsonl-beaver](https://github.com/kesheC/jsonl-beaver) |
 | apidiff | 在发布前发现 OpenAPI / JSON Schema / .env 的破坏性变更 | [kesheC/apidiff](https://github.com/kesheC/apidiff) |
+| releaseforge | 把 Conventional Commits 变成一次 release：计划 bump、跑发布闸门、冻结 CHANGELOG、打 tag、出 tarball | [kesheC/releaseforge](https://github.com/kesheC/releaseforge) |
+| httptape | HTTP 录制 / 回放测试库：把真实请求录成 tape 文件，测试里离线回放 | [kesheC/httptape](https://github.com/kesheC/httptape) |
+| hooktap | 本地 webhook 检查器：捕获请求的原始字节、按 GitHub 方式验 HMAC 签名、原样重放 | [kesheC/hooktap](https://github.com/kesheC/hooktap) |
 
 ### 安装方式说明
 
-这六个包**都没有发布到 npm registry**（`clidoc` 与 `repropack` 这两个名字已被别人的项目占用，其余四个名字仍然空着）。
+这九个包**都没有发布到 npm registry**（`clidoc` 与 `repropack` 这两个名字已被别人的项目占用，其余七个名字都还空着）。
 每个 Release 都附带一个可以直接安装的 tarball，资产名固定、不带版本号，所以这条命令在哪个版本都能用：
 
 ```console
@@ -46,13 +49,14 @@ $ npm install -g https://github.com/kesheC/<name>/releases/latest/download/<name
 > 会跳过 `devDependencies`，没有 `tsc` 可以编译。这也是本仓库统一改用 tarball 的原因。
 
 每个 tarball 里只有 `dist/`、`README.md` 和 `LICENSE`：没有 `src/`、没有测试、没有 `.js.map`。
-不发源码的包里带 sourcemap 只是指向一个读者永远打不开的文件，所以六个包的发布构建都关掉了它，
+不发源码的包里带 sourcemap 只是指向一个读者永远打不开的文件，所以九个包的发布构建都关掉了它，
 并由各自的 `tests/package.test.ts` 与 CI 的打包检查同时守着。
 
 ### 发版记录
 
 | 版本 | 日期 | 内容 |
 | --- | --- | --- |
+| [releaseforge v0.1.0](https://github.com/kesheC/releaseforge/releases/tag/v0.1.0) · [httptape v0.1.0](https://github.com/kesheC/httptape/releases/tag/v0.1.0) · [hooktap v0.1.0](https://github.com/kesheC/hooktap/releases/tag/v0.1.0) | 2026-11-05 | 三个新项目首版：`releaseforge`（发布链自动化 CLI，五道发布闸门 + Conventional Commits bump 计划 + CHANGELOG 冻结）、`httptape`（HTTP 录制/回放测试库，tape 格式带 formatVersion、strict 模式未匹配即失败）、`hooktap`（本地 webhook 捕获/验签/重放，原始字节保真、x-hub-signature-256 常时比较）。三者沿用六仓的生产手册：零运行时依赖、六格矩阵 CI + coverage 闸门 + npm audit 闸门、README 双语 + 真实转录（vtf3 逐块复验 34/34、15/15、10/10）、tag 驱动 Release 双名资产 + sha256 清单、干净目录安装验证 `--version` |
 | [v0.1.7](https://github.com/kesheC/repropack/releases/tag/v0.1.7) | 2026-11-01 | 六个包统一发版：修正 README 里与实际不符的输出、补齐发布链路的闸门、发布构建停发 sourcemap、`files` 收紧为 `dist` + `README` + `LICENSE` |
 | [v0.1.8](https://github.com/kesheC/repropack/releases/tag/v0.1.8) | 2026-11-01 | 发布与 CI 闸门改成「把闸门自己的 shell body 抽出来真跑」而不是断言 YAML 里有某个字符串；补回重写时丢掉的三条守卫（先 `--draft=false` 发布再上传、每个 bin 都冒烟测、build 先清 `dist`）；envpulse 补上它一直没有的 tag/version 闸门；repropack 的 `--version` 断言改为比对 `TOOL_VERSION`，版本号不再变成测试失败 |
 | [v0.1.9](https://github.com/kesheC/repropack/releases/tag/v0.1.9) | 2026-11-01 | 六仓 README 补中文：十二节（clidoc/envpulse/jsonl-beaver 为段内镜像）全部有中文对照；clidoc / envpulse / jsonl-beaver 修掉「命令不读的选项被静默忽略」，越界 flag 现在 exit 2 并指出真正读它的命令；apidiff 的 FAQ 不再声称 `diffSchemas` 会拒绝数组根（它返回一条 `schema.replaced`，只有 CLI 的 `assertSchemaRoot` 会拒）；0.1.8 里对 v0.1.7 守卫的口径逐仓校正 |
@@ -86,7 +90,7 @@ $ npm install -g https://github.com/kesheC/<name>/releases/latest/download/<name
 
 - [`AGENTS.md`](AGENTS.md)：目录约定、环境、agent 技能与 issue tracker 规则
 - [`docs/agents/`](docs/agents/)：issue tracker / triage labels / domain 三份配置，外加每个项目的 spec
-- [`docs/agents/project-playbook.md`](docs/agents/project-playbook.md)：六个项目共用的生产手册（骨架、CI、发布链路、README 规范、质量闸门、交付报告）
+- [`docs/agents/project-playbook.md`](docs/agents/project-playbook.md)：九个项目共用的生产手册（骨架、CI、发布链路、README 规范、质量闸门、交付报告）
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)：一处改动该提到哪个仓库；`projects/*/` 在这里是被忽略的独立 checkout
 - [`SECURITY.md`](SECURITY.md) / [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)：报告渠道（私密 advisory，不是公开 issue）
 - [`scripts/github-posture.sh`](scripts/github-posture.sh)：一行一仓打印 version / topics / 社区档案 / secret scanning / push protection / 私密报告 / 最新 CI / 最新 release，有一列不达标就退出 1
